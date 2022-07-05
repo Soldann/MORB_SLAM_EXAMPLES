@@ -178,6 +178,7 @@ int main(int argc, char **argv) {
     cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
     cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
     //cfg.enable_device("141722079054");
+    //cfg.enable_stream("141722077646");
 
     // IMU callback
     std::mutex imu_mutex;
@@ -334,6 +335,15 @@ int main(int argc, char **argv) {
     double t_resize = 0.f;
     double t_track = 0.f;
 
+    cv::Size imgSize(width_img, height_img);
+    cv::Mat mask(imgSize, CV_8UC1, cv::Scalar(0));
+
+    for (int i = 0; i < imgSize.height/2; ++i){
+        for (int j = 0; j < imgSize.width/2; ++j){
+            mask.at<uint8_t>(i,j) = 255;
+        }
+    }
+
     while (!SLAM.isShutDown())
     {
         std::vector<rs2_vector> vGyro;
@@ -443,7 +453,7 @@ int main(int argc, char **argv) {
     #endif
 #endif
         // Pass the image to the SLAM system
-        SLAM.TrackRGBD(im, depth, timestamp, vImuMeas);
+        SLAM.TrackRGBD(im, depth, &mask, timestamp, vImuMeas);
 
 #ifdef REGISTER_TIMES
     #ifdef COMPILEDWITHC11
